@@ -1,70 +1,88 @@
-# Getting Started with Create React App
+# Binance Demo Order Book
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+- React
+- MUI
+- WebSockets
+- Rest
+- Hooks
+- Heroku
+- GithubActions
+- Binance RestAPI and Web Sockets
 
-## Available Scripts
+App is deployed on heroku using Github Actions:
 
-In the project directory, you can run:
-
-### `npm start`
+## Development mode `npm start`
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+The page will reload when you make changes.
 
-### `npm test`
+## Production mode `npm run build`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Order Book Doc
 
-### `npm run build`
+Partial Book Depth Streams
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Top <levels> bids and asks, pushed every second. Valid <levels> are 5, 10, or 20.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Stream Names: <symbol>@depth<levels> OR <symbol>@depth<levels>@100ms
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Update Speed: 1000ms or 100ms
 
-### `npm run eject`
+Payload:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+{
+"lastUpdateId": 160, // Last update ID
+"bids": [ // Bids to be updated
+[
+"0.0024", // Price level to be updated
+"10" // Quantity
+]
+],
+"asks": [ // Asks to be updated
+[
+"0.0026", // Price level to be updated
+"100" // Quantity
+]
+]
+}
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Diff. Depth Stream
+Order book price and quantity depth updates used to locally manage an order book.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Stream Name: <symbol>@depth OR <symbol>@depth@100ms
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Update Speed: 1000ms or 100ms
 
-## Learn More
+Payload:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+{
+"e": "depthUpdate", // Event type
+"E": 123456789, // Event time
+"s": "BNBBTC", // Symbol
+"U": 157, // First update ID in event
+"u": 160, // Final update ID in event
+"b": [ // Bids to be updated
+[
+"0.0024", // Price level to be updated
+"10" // Quantity
+]
+],
+"a": [ // Asks to be updated
+[
+"0.0026", // Price level to be updated
+"100" // Quantity
+]
+]
+}
+How to manage a local order book correctly
+Open a stream to wss://stream.binance.us:9443/ws/bnbbtc@depth
+Buffer the events you receive from the stream
+Get a depth snapshot from https://www.binance.us/api/v1/depth?symbol=BNBBTC&limit=1000
+Drop any event where u is <= lastUpdateId in the snapshot
+The first processed should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+While listening to the stream, each new event's U should be equal to the previous event's u+1
+The data in each event is the absolute quantity for a price level
+If the quantity is 0, remove the price level
+Receiving an event that removes a price level that is not in your local order book can happen and is normal.
