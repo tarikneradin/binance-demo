@@ -1,25 +1,21 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+// import useWebSocket, { ReadyState } from 'react-use-websocket';
+import Container from '@mui/material/Container';
+import { Routes, Route } from 'react-router-dom';
+import Header from './components/layout/Header';
+import Copyright from './components/layout/Copyright';
+import MarketDepth from './components/trade/MarketDepth';
 
-function App() {
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Container>
+      <Header />
+      <Routes>
+        <Route path="/" element={<MarketDepth />} />
+        <Route path="/trade/:symbol" element={<MarketDepth />} />
+        <Route path="*">NO PAGE FOUND</Route>
+      </Routes>
+      <Copyright />
+    </Container>
   );
 }
-
-export default App;
